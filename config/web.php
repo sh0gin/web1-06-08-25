@@ -94,7 +94,27 @@ $config = [
                 "ORIGIN registration" => 'option',
 
                 "GET logout" => 'user/logout',
-                "ORIGIN registration" => 'option',
+                "ORIGIN logout" => 'option',
+
+                "POST files" => 'file/upload',
+                "ORIGIN files" => 'option',
+
+                // "POST files/<file_id>" => 'file/upload',
+                // "ORIGIN files/<file_id>" => 'option',
+
+                // "POST " => 'user/logout',
+                // "ORIGIN " => 'option',
+
+                // "POST " => 'user/logout',
+                // "ORIGIN " => 'option',
+
+                // "POST " => 'user/logout',
+                // "ORIGIN " => 'option',
+
+                // "POST " => 'user/logout',
+                // "ORIGIN " => 'option',
+                
+                
             ],
         ]
     ],

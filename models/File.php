@@ -14,6 +14,7 @@ use Yii;
  */
 class File extends \yii\db\ActiveRecord
 {
+    public $file;
     /**
      * {@inheritdoc}
      */
@@ -28,8 +29,8 @@ class File extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'file_id', 'user_id'], 'required'],
-            [['name', 'file_id', 'user_id'], 'integer'],
+            [['name', 'file_id', 'user_id'], 'required', 'on' => 'basic'],
+            ['file', 'file',  'maxFiles' => 2, 'extensions' => 'doc, pdf, docx, zip, jpeg, jpg, png', 'maxSize' => 1024*1024*2, 'on' => 'upload']
         ];
     }
 

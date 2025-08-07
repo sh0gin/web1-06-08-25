@@ -24,22 +24,21 @@ class UserController extends \yii\rest\ActiveController
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::class,
             'cors' => [
-                'Origin' => [isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : 'http ://' . $_SERVER['REMOTE_ADDR']],
+                'Origin' => [isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_OROGIN'] : 'http://' . $_SERVER['REMOTE_ADDR']],
+                // 'Origin' => ["*"],
                 'Access-Control-Request-Method' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
                 'Access-Control-Request-Headers' => ['*'],
             ],
             'actions' => [
-                'login' => [
+                'logout' => [
                     'Access-Control-Allow-Credentials' => true,
                 ]
             ]
         ];
-
         $auth = [
             'class' => HttpBearerAuth::class,
-            'only' => ['logout'],
+            'only' => ['logout']
         ];
-
         // re-add authentication filter
         $behaviors['authenticator'] = $auth;
         // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
@@ -60,6 +59,7 @@ class UserController extends \yii\rest\ActiveController
 
         return $actions;
     }
+    
     public function actionLogin()
     {
         $model = new User();
@@ -69,6 +69,7 @@ class UserController extends \yii\rest\ActiveController
             if ($model) {
                 if ($model->validatePassword(Yii::$app->request->post()['password'])) {
                     $model->token = Yii::$app->security->generateRandomString();
+                    $model->save();
                     return $this->asJson([
                         'seccess' => false,
                         'code' => 200,
@@ -133,9 +134,11 @@ class UserController extends \yii\rest\ActiveController
         }
     }
 
-    public function actionLogout() {
-        return Yii::$app->user->id;
-        $model = User::findOne(Yii::$app->user->id);
-        return $model;
+    public function actionLogout()
+    {
+        $user = Yii::$app->user->id;
+        return $user;
+        // $model = User::findOne(Yii::$app->user->id);
+        // return $model;
     }
 }
