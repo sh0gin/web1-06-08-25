@@ -30,7 +30,9 @@ class File extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'file_id', 'user_id'], 'required', 'on' => 'basic'],
-            ['file', 'file',  'maxFiles' => 2, 'extensions' => 'doc, pdf, docx, zip, jpeg, jpg, png', 'maxSize' => 1024*1024*2, 'on' => 'upload']
+            ['file', 'file','maxFiles' => 2, 'on' => 'upload'],
+            ['file', 'required', 'on' => 'upload'],
+            ['file', 'file', 'extensions' => ['doc', 'pdf', 'docx', 'zip', 'jpeg', 'jpg', 'png'], 'maxSize' => 1024*1024*2, 'on' => 'upload-two'],
         ];
     }
 

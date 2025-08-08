@@ -136,9 +136,9 @@ class UserController extends \yii\rest\ActiveController
 
     public function actionLogout()
     {
-        $user = Yii::$app->user->id;
-        return $user;
-        // $model = User::findOne(Yii::$app->user->id);
-        // return $model;
+        $model = User::findOne(Yii::$app->user->identity->id);
+        $model->token = Null;
+        $model->save(false);
+        Yii::$app->response->statusCode = 204;
     }
 }

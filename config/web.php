@@ -82,39 +82,57 @@ $config = [
         'db' => $db,
         'urlManager' => [
             'enablePrettyUrl' => true,
-            'enableStrictParsing' => true,
             'showScriptName' => false,
+            'enableStrictParsing' => true,
             'rules' => [
-                ['class' => 'yii\rest\UrlRule', 'controller' => 'user'],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'file',
+                    'pluralize' => true,
+                    'extraPatterns' => [
+                        'PATCH <file_id>' => 'rename-file',
+                        'OPTIONS <file_id>' => 'options',
+
+                        'DELETE <file_id>' => 'delete-file',
+                        'OPTIONS <file_id>' => 'options',
+
+                        'GET <file_id>' => 'download-file',
+                        'OPTIONS <file_id>' => 'options'
+                    ]
+                ],
 
                 "POST authorization" => 'user/login',
-                "ORIGIN authorization" => 'option',
+                "OPTIONS authorization" => 'options',
 
                 "POST registration" => 'user/register',
-                "ORIGIN registration" => 'option',
+                "OPTIONS registration" => 'options',
 
                 "GET logout" => 'user/logout',
-                "ORIGIN logout" => 'option',
+                "OPTIONS logout" => 'options',
 
-                "POST files" => 'file/upload',
-                "ORIGIN files" => 'option',
+                "POST file" => 'file/upload',
+                "OPTIONS file" => 'options',
+
+
+                // "POST file" => 'file/upload',
+                // "OPTIONS file" => 'options',
 
                 // "POST files/<file_id>" => 'file/upload',
-                // "ORIGIN files/<file_id>" => 'option',
+                // "OPTIONS files/<file_id>" => 'options',
 
                 // "POST " => 'user/logout',
-                // "ORIGIN " => 'option',
+                // "OPTIONS " => 'options',
 
                 // "POST " => 'user/logout',
-                // "ORIGIN " => 'option',
+                // "OPTIONS " => 'options',
 
                 // "POST " => 'user/logout',
-                // "ORIGIN " => 'option',
+                // "OPTIONS " => 'options',
 
                 // "POST " => 'user/logout',
-                // "ORIGIN " => 'option',
-                
-                
+                // "OPTIONS " => 'options',
+
+
             ],
         ]
     ],

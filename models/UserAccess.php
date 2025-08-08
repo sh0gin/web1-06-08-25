@@ -10,6 +10,7 @@ use Yii;
  * @property int $id
  * @property int $file_id
  * @property int $user_id
+ * @property int $user_role
  */
 class UserAccess extends \yii\db\ActiveRecord
 {
