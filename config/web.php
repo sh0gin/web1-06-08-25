@@ -90,14 +90,29 @@ $config = [
                     'controller' => 'file',
                     'pluralize' => true,
                     'extraPatterns' => [
+
+                        
+                        "GET disk" => "get-files",
+                        "OPTIONS disk" => "options",
+                        
+                        "GET shared" => "get-files-so-author",
+                        "OPTIONS shared" => "options",
+                        
                         'PATCH <file_id>' => 'rename-file',
                         'OPTIONS <file_id>' => 'options',
-
+                        
                         'DELETE <file_id>' => 'delete-file',
                         'OPTIONS <file_id>' => 'options',
-
+                        
                         'GET <file_id>' => 'download-file',
-                        'OPTIONS <file_id>' => 'options'
+                        'OPTIONS <file_id>' => 'options',
+                        
+                        "POST <file_id>/accesses" => "add-access",
+                        "OPTIONS <file_id>/accesses" => "options",
+                        
+                        "DELETE <file_id>/accesses" => "delete-access",
+                        "OPTIONS <file_id>/accesses" => "options",
+                        
                     ]
                 ],
 

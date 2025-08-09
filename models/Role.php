@@ -62,4 +62,13 @@ class Role extends \yii\db\ActiveRecord
             return 1;
         }
     }
+
+    static function getRoleName($id) {
+        $model = self::findOne($id);
+        if ($model) {
+            return $model->role;
+        } else {
+            return null;
+        }
+    }
 }

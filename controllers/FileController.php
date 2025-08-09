@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\models\File;
 use app\models\Role;
+use app\models\User;
 use app\models\UserAccess;
 use Yii;
 use yii\db\Query;
@@ -42,7 +43,7 @@ class FileController extends \yii\rest\ActiveController
         ];
         $auth = [
             'class' => HttpBearerAuth::class,
-            'only' => ['upload', 'rename-file', 'delete-file', 'download-file']
+            'only' => ['upload', 'rename-file', 'delete-file', 'download-file', 'add-access', 'delete-access', 'get-files', 'get-files-so-author'],
         ];
         // re-add authentication filter
         $behaviors['authenticator'] = $auth;
@@ -95,31 +96,31 @@ class FileController extends \yii\rest\ActiveController
 
                     if ($files_have) {
                         foreach ($files_have as $item) { // задача изменить $value->name || здесь мы сравниваем все файлы пользователя с передынным файлом
-                            if (strtolower($item->name) == strtolower($value->name)) {
+                            if (strtolower("$item->name.$item->extension") == strtolower($value->name)) {
 
 
                                 $file_name = str_split($value->name, strripos($value->name, '.'))[0];
-                                $file_ext = str_split($value->name, strripos($value->name, '.'))[1];
-
+                                $file_ext = trim(str_split($value->name, strripos($value->name, '.'))[1], '.');
                                 $name_for_regex = preg_quote($file_name);
-                                $query = (new Query())->select('name')->from('File')->where(['REGEXP', 'name', "$name_for_regex( \(\d+\))*($file_ext)$"])->orderBy(['id' => SORT_DESC])->limit(1)->one()['name'];
-                                $name_last_from_bd = str_split($query, strripos($query, '.'))[0];
-                                if ($value->name != $query) {
-                                    $position = (int) trim(str_split($name_last_from_bd, strripos($name_last_from_bd, '('))[1], '()') + 1;
-                                    $file->name = $file_name . " ($position).$value->extension";
+                                $query = (new Query())->select('name')->from('File')->where(['REGEXP', 'name', "$name_for_regex( \(\d+\))*"])->andWhere(['extension' => $file_ext])->orderBy(['id' => SORT_DESC])->limit(1)->one()['name'];
+
+                                if ($file_name != $query) {
+                                    $position = (int) trim(str_split($query, strripos($query, '('))[1], '()') + 1;
+                                    $file->name = $file_name . " ($position)";
                                     break;
                                 } else {
-                                    $file->name = "$file_name (2).$value->extension";
+                                    $file->name = "$file_name (2)";
                                     break;
                                 }
                             } else {
-                                $file->name = $value->name;
+                                $file->name = str_split($value->name, strripos($value->name, '.'))[0];
                             }
                         }
                     } else {
-                        $file->name = $value->name;
+                        $file->name = str_split($value->name, strripos($value->name, '.'))[0];
                     }
 
+                    $file->extension = $value->extension;
                     $value->saveAs(__DIR__ . "/../files/$file->name");
                     if ($file->save(false)) {
                         $access = new UserAccess();
@@ -132,7 +133,7 @@ class FileController extends \yii\rest\ActiveController
                             'code' => 200,
                             'message' => 'Success',
                             'name' => $file->name,
-                            'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name",
+                            'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name.$file->extension",
                             'file_id' => $file->file_id,
                         ];
                     } else {
@@ -164,13 +165,20 @@ class FileController extends \yii\rest\ActiveController
     public function actionRenameFile($file_id)
     {
         $model = File::findOne(['file_id' => $file_id]);
+        $access = UserAccess::findOne(['file_id' => $model->id]);
+
         if ($model) {
-            if ($model->user_id == Yii::$app->user->identity->id) {
+            if ($access->user_id == Yii::$app->user->identity->id) {
                 $model->name = Yii::$app->request->post()['name'];
                 $model->scenario = 'basic';
                 $new_name = Yii::$app->request->post()['name'];
                 if ($model->validate()) {
-                    foreach (File::findAll(['user_id' => Yii::$app->user->identity->id]) as $value) {
+                    $files_access = UserAccess::findAll(['user_id' => Yii::$app->user->identity->id]);
+                    $files_have = [];
+                    foreach ($files_access as $value1) {
+                        $files_have[] = $value1->file_id;
+                    }
+                    foreach (File::findAll(['id' => $files_have]) as $value) {
                         if (strtolower($value->name) == strtolower($new_name) && $value->id != $model->id) {
                             return $this->asJson([
                                 'seccess' => false,
@@ -207,8 +215,9 @@ class FileController extends \yii\rest\ActiveController
     public function actionDeleteFile($file_id)
     {
         $model = File::findOne(['file_id' => $file_id]);
+        $access = UserAccess::findOne(['file_id' => $model->id]);
         if ($model) {
-            if ($model->user_id == Yii::$app->user->identity->id) {
+            if ($access->user_id == Yii::$app->user->identity->id) {
                 $model->delete();
                 return $this->asJson([
                     'success' => true,
@@ -236,5 +245,137 @@ class FileController extends \yii\rest\ActiveController
         } else {
             Yii::$app->response->statusCode = 404;
         }
+    }
+
+    public function actionAddAccess($file_id)
+    {
+        $file = File::findOne(["file_id" => $file_id]);
+        if ($file) {
+            $leader = User::findOne(Yii::$app->user->identity->id);
+            $access = UserAccess::findOne(['file_id' => $file->id, 'user_id' => $leader->id, 'user_role' => 2]);
+            if ($access) {
+                $new_user = User::findOne(['email' => Yii::$app->request->post()]);
+                if ($new_user) {
+                    // здесь можно добавить проверку на то чтобы пользователь не мог добавить сам себя, надо ли?:) в задании такого нет условия, странно добавлять себя же ещё раз
+                    if ($new_user != $leader && !UserAccess::findOne(['user_id' => $new_user->id, 'file_id' => $file->id])) {
+                        $new_access = new UserAccess;
+                        $new_access->file_id = $file->id;
+                        $new_access->user_id = $new_user->id;
+                        $new_access->user_role = Role::getRole('co-author');
+                        $new_access->save(false);
+
+                        $user_all_access = [];
+
+                        foreach (UserAccess::findAll(['file_id' => $file]) as $value) {
+                            $file_ = File::findOne([$value->file_id]);
+                            $user_ = User::findOne([$value->user_id]);
+
+                            $user_all_access[] = [
+                                'fullname' => $file_->name,
+                                'email' => $user_->email,
+                                'type' => Role::getRoleName($value->user_role),
+                                'code' => 200,
+                            ];
+                        }
+
+                        return $this->asJson(
+                            $user_all_access,
+                        );
+                    } else {
+                        Yii::$app->response->statusCode = 403;
+                    }
+                } else {
+                    Yii::$app->response->statusCode = 404;
+                }
+            } else {
+                Yii::$app->response->statusCode = 403;
+            }
+        } else {
+            Yii::$app->response->statusCode = 404;
+        }
+    }
+
+    public function actionDeleteAccess($file_id)
+    {
+        $email_new_user = Yii::$app->request->post()['email'];
+        $model_user_new = User::findOne(['email' => $email_new_user]);
+        $model_file = File::findOne(['file_id' => $file_id]);
+        if ($model_user_new && $model_file) {
+            $user_access = UserAccess::findOne(['file_id' => $model_file->id, 'user_id' => $model_user_new->id]);
+            if ($user_access) {
+                $leader = User::findOne(Yii::$app->user->identity->id);
+                $leader_access = UserAccess::findOne(['file_id' => $model_file->id, 'user_id' => $leader->id, 'user_role' => 2]);
+                if ($leader->email != $email_new_user && $leader_access) {
+                    $user_access->delete();
+
+                    $user_all_access = [];
+
+                    foreach (UserAccess::findAll(['file_id' => $model_file->id]) as $value) {
+                        $file_ = File::findOne([$value->file_id]);
+                        $user_ = User::findOne([$value->user_id]);
+
+                        $user_all_access[] = [
+                            'fullname' => $file_->name,
+                            'email' => $user_->email,
+                            'type' => Role::getRoleName($value->user_role),
+                            'code' => 200,
+                        ];
+                    }
+                    return $this->asJson(
+                        $user_all_access,
+                    );
+                } else {
+                    Yii::$app->response->statusCode = 403;
+                }
+            } else {
+                Yii::$app->response->statusCode = 404;
+            }
+        } else {
+            Yii::$app->response->statusCode = 404;
+        }
+    }
+
+    public function actionGetFiles()
+    {
+
+        $all_files = [];
+        foreach (UserAccess::findAll(['user_id' => Yii::$app->user->identity->id, 'user_role' => 2]) as $value) {
+            $file = File::findOne($value->file_id);
+            $users = [];
+            foreach (UserAccess::findAll(['file_id' => $file->id]) as $item) {
+                $model_user = User::findOne($item->user_id);
+                $users[] = [
+                    'fullname' => "$model_user->first_name $model_user->last_name",
+                    'email' => "$model_user->email",
+                    'type' => Role::getRoleName($item->user_role),
+                ];
+            }
+            $all_files[] = [
+                'file_id' => $file->id,
+                'name' => $file->name,
+                'code' => 200,
+                'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name",
+                'accesses' => [
+                    $users,
+                ]
+            ];
+        }
+
+        return $this->asJson($all_files);
+    }
+
+    public function actionGetFilesSoAuthor()
+    {
+        $all_files = [];
+        foreach (UserAccess::findAll(['user_id' => Yii::$app->user->identity->id, 'user_role' => 1]) as $value) {
+            $file = File::findOne($value->file_id);
+            $all_files[] = [
+                'file_id' => $file->id,
+                'code' => 200,
+                'name' => $file->name,
+                'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name",
+            ];
+        }
+        return $this->asJson($all_files);
     }
 }

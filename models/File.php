@@ -9,8 +9,8 @@ use Yii;
  *
  * @property int $id
  * @property int $name
+ * @property int $extension
  * @property int $file_id
- * @property int $user_id
  */
 class File extends \yii\db\ActiveRecord
 {
@@ -29,7 +29,7 @@ class File extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'file_id', 'user_id'], 'required', 'on' => 'basic'],
+            [['name', 'file_id', 'extension'], 'required', 'on' => 'basic'],
             ['file', 'file','maxFiles' => 2, 'on' => 'upload'],
             ['file', 'required', 'on' => 'upload'],
             ['file', 'file', 'extensions' => ['doc', 'pdf', 'docx', 'zip', 'jpeg', 'jpg', 'png'], 'maxSize' => 1024*1024*2, 'on' => 'upload-two'],
@@ -45,7 +45,6 @@ class File extends \yii\db\ActiveRecord
             'id' => 'ID',
             'name' => 'Name',
             'file_id' => 'File ID',
-            'user_id' => 'User ID',
         ];
     }
 }
