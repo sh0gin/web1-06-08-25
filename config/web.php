@@ -113,6 +113,8 @@ $config = [
                         "DELETE <file_id>/accesses" => "delete-access",
                         "OPTIONS <file_id>/accesses" => "options",
                         
+                        "POST" => 'upload',
+                        "OPTIONS" => 'options',
                     ]
                 ],
 
@@ -125,8 +127,8 @@ $config = [
                 "GET logout" => 'user/logout',
                 "OPTIONS logout" => 'options',
 
-                "POST file" => 'file/upload',
-                "OPTIONS file" => 'options',
+                // "POST files" => 'file/upload',
+                // "OPTIONS files" => 'options',
 
 
                 // "POST file" => 'file/upload',

@@ -121,7 +121,7 @@ class FileController extends \yii\rest\ActiveController
                     }
 
                     $file->extension = $value->extension;
-                    $value->saveAs(__DIR__ . "/../files/$file->name");
+                    $value->saveAs(__DIR__ . "/../files/$file->name.$file->extension");
                     if ($file->save(false)) {
                         $access = new UserAccess();
                         $access->user_id = Yii::$app->user->identity->id;
@@ -238,7 +238,7 @@ class FileController extends \yii\rest\ActiveController
         $model = File::findOne(['file_id' => $file_id]);
         if ($model) {
             if (UserAccess::findOne(['file_id' => $model->id, 'user_id' => Yii::$app->user->identity->id])) {
-                return Yii::$app->response->sendFile(__DIR__ . "/../files/{$model->name}");
+                return Yii::$app->response->sendFile(__DIR__ . "/../files/{$model->name}.{$model->extension}");
             } else {
                 Yii::$app->response->statusCode = 403;
             };
@@ -354,7 +354,7 @@ class FileController extends \yii\rest\ActiveController
                 'file_id' => $file->id,
                 'name' => $file->name,
                 'code' => 200,
-                'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name",
+                'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name.$file->extension",
                 'accesses' => [
                     $users,
                 ]
@@ -373,7 +373,7 @@ class FileController extends \yii\rest\ActiveController
                 'file_id' => $file->id,
                 'code' => 200,
                 'name' => $file->name,
-                'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name",
+                'url' => "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/files/$file->name.$file->extension",
             ];
         }
         return $this->asJson($all_files);
