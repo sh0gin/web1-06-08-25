@@ -91,6 +91,8 @@ $config = [
                     'pluralize' => true,
                     'extraPatterns' => [
 
+                        // "POST" => 'upload',
+                        // "OPTIONS" => 'options',
                         
                         "GET disk" => "get-files",
                         "OPTIONS disk" => "options",
@@ -113,8 +115,6 @@ $config = [
                         "DELETE <file_id>/accesses" => "delete-access",
                         "OPTIONS <file_id>/accesses" => "options",
                         
-                        "POST" => 'upload',
-                        "OPTIONS" => 'options',
                     ]
                 ],
 
@@ -127,29 +127,8 @@ $config = [
                 "GET logout" => 'user/logout',
                 "OPTIONS logout" => 'options',
 
-                // "POST files" => 'file/upload',
-                // "OPTIONS files" => 'options',
-
-
-                // "POST file" => 'file/upload',
-                // "OPTIONS file" => 'options',
-
-                // "POST files/<file_id>" => 'file/upload',
-                // "OPTIONS files/<file_id>" => 'options',
-
-                // "POST " => 'user/logout',
-                // "OPTIONS " => 'options',
-
-                // "POST " => 'user/logout',
-                // "OPTIONS " => 'options',
-
-                // "POST " => 'user/logout',
-                // "OPTIONS " => 'options',
-
-                // "POST " => 'user/logout',
-                // "OPTIONS " => 'options',
-
-
+                "POST file" => 'file/upload',
+                "OPTIONS file" => 'options',
             ],
         ]
     ],

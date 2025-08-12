@@ -337,7 +337,7 @@ class FileController extends \yii\rest\ActiveController
 
     public function actionGetFiles()
     {
-
+        return 123;
         $all_files = [];
         foreach (UserAccess::findAll(['user_id' => Yii::$app->user->identity->id, 'user_role' => 2]) as $value) {
             $file = File::findOne($value->file_id);

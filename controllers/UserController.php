@@ -71,7 +71,7 @@ class UserController extends \yii\rest\ActiveController
                     $model->token = Yii::$app->security->generateRandomString();
                     $model->save();
                     return $this->asJson([
-                        'seccess' => false,
+                        'seccess' => true,
                         'code' => 200,
                         'message' => 'Success',
                         'token' => $model->token,
